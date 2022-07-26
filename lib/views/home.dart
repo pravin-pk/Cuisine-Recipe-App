@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -61,7 +62,7 @@ class _HomeState extends State<Home> {
             onPressed: () {
               SystemNavigator.pop();
             },
-            icon: Icon(Icons.exit_to_app_sharp),
+            icon: const Icon(Icons.exit_to_app_sharp),
           ),
         ],
         flexibleSpace: Container(
@@ -83,7 +84,7 @@ class _HomeState extends State<Home> {
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
             decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                     colors: <Color>[
                   Color.fromARGB(255, 255, 255, 255),
                   Color.fromARGB(255, 255, 255, 255),
@@ -128,10 +129,10 @@ class _HomeState extends State<Home> {
                     //   // )
                     // ],
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 20,
                   ),
-                  Text(
+                  const Text(
                     "So What's in your mind?",
                     style: TextStyle(
                         fontSize: 30,
@@ -139,7 +140,7 @@ class _HomeState extends State<Home> {
                         fontWeight: FontWeight.w400,
                         fontFamily: 'Overpass'),
                   ),
-                  Text(
+                  const Text(
                     "Just Enter Ingredients you have and I will show the best recipes for you",
                     style: TextStyle(
                         fontSize: 20,
@@ -147,11 +148,12 @@ class _HomeState extends State<Home> {
                         fontWeight: FontWeight.w300,
                         fontFamily: 'OverpassRegular'),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 30,
                   ),
                   Container(
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Expanded(
                           child: TextField(
@@ -184,8 +186,9 @@ class _HomeState extends State<Home> {
                         Expanded(
                             child: DropdownButton<String>(
                           value: _cuisineValue,
-                          icon: const Icon(Icons.arrow_downward),
+                          icon: const Icon(Icons.list),
                           elevation: 16,
+                          itemHeight: 63,
                           style: const TextStyle(
                             color: Color.fromARGB(255, 0, 0, 0),
                             fontSize: 18,
@@ -238,10 +241,9 @@ class _HomeState extends State<Home> {
                             backgroundColor: Colors.transparent,
                             elevation: 0,
                             onPressed: () async {
+                              _loading = true;
                               if (textEditingController.text.isNotEmpty) {
-                                setState(() {
-                                  _loading = true;
-                                });
+                                setState(() {});
                                 print("doing it");
                                 FocusScope.of(context).unfocus();
                                 recipies = [];
@@ -266,8 +268,8 @@ class _HomeState extends State<Home> {
                                   // print(recipeModel.url);
                                 });
                                 setState(() {
-                                  _loading = false;
                                   _initial = false;
+                                  _loading = false;
                                 });
                               } else {
                                 print("not doing it");
@@ -311,8 +313,19 @@ class _HomeState extends State<Home> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
-                                  Icon(Icons.search,
-                                      size: 18, color: Colors.white),
+                                  (!_loading)
+                                      ? Icon(Icons.search,
+                                          size: 18, color: Colors.white)
+                                      : SizedBox(
+                                          height: 18,
+                                          width: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.0,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Colors.white),
+                                          ),
+                                        )
                                 ],
                               ),
                             )),
@@ -403,6 +416,7 @@ class _RecipieTileState extends State<RecipieTile> {
       children: <Widget>[
         GestureDetector(
           onTap: () {
+            CircularProgressIndicator();
             if (kIsWeb) {
               _launchURL(widget.url);
             } else {
@@ -421,10 +435,20 @@ class _RecipieTileState extends State<RecipieTile> {
                 barrierColor: Color.fromARGB(98, 0, 0, 0),
                 context: context,
                 builder: (_) => NetworkGiffyDialog(
-                      image: Image.network(
-                        widget.imgUrl,
-                        height: 100,
-                        width: 100,
+                      image: CachedNetworkImage(
+                        fit: BoxFit.cover,
+                        // color: Color(0xff14AA84),
+                        imageUrl: widget.imgUrl,
+                        progressIndicatorBuilder:
+                            (context, url, downloadProgress) =>
+                                CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Color(0xff14AA84)),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
+                        // height: 200,
+                        // width: 200,
                       ),
                       entryAnimation: EntryAnimation.BOTTOM,
                       title: Text(
@@ -454,11 +478,24 @@ class _RecipieTileState extends State<RecipieTile> {
             margin: EdgeInsets.all(8),
             child: Stack(
               children: <Widget>[
-                Image.network(
-                  widget.imgUrl,
-                  height: 200,
-                  width: 200,
+                // Image.network(
+                //   widget.imgUrl,
+                //   height: 200,
+                //   width: 200,
+                //   fit: BoxFit.cover,
+                // ),
+                CachedNetworkImage(
                   fit: BoxFit.cover,
+                  // color: Color(0xff14AA84),
+                  imageUrl: widget.imgUrl,
+                  progressIndicatorBuilder: (context, url, downloadProgress) =>
+                      CircularProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(Color(0xff14AA84)),
+                  ),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                  // height: 200,
+                  // width: 200,
                 ),
                 Container(
                   width: 200,
